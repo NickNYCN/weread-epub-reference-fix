@@ -2,4 +2,4 @@
 
 Transfer reference notes from images to internal-links to improve compatibility, for epub files exported from WeRead.
 
-这是一个Python程序，在DeepDeek协助下完成。使用时在进入文件目录，使用命令行工具输入<code>python weread-epub-reference-fix.py</code>，再输入要转换的epub文件路径即可。
+这是一个Python程序，在DeepDeek协助下完成。使用时进入文件目录，运行命令行工具并输入<code>python weread-epub-reference-fix.py</code>，再输入要转换的epub文件路径即可。
