@@ -77,7 +77,7 @@ def convert_footnotes_to_internal_links(epub_path):
     /* 正文中的参考文献标记 */
    .footnote-ref {
       vertical-align: super;
-      font-size: 75%;
+      font-size: smaller;
       cursor: pointer;
       transition: all 0.3s ease;
 }
@@ -91,33 +91,39 @@ def convert_footnotes_to_internal_links(epub_path):
     .references-section {
         margin-top: 40px;
         padding-top: 20px;
-        border-top: 1px solid #eee;
     }
-    
-    .reference-item {
-        padding: 8px 0;
-        margin: 8px 0;
-        border-bottom: 1px dashed #e0e0e0;
+
+    .calibre8 {
+        color: gray;
+        display: block;
+        height: 2px;
+        margin: 0.5em auto;
+        border: currentColor inset 1px;
     }
-    
-    .reference-number {
+
+    .kindle-cn-kai1 {
+        font-family: STKai, "MKai PRC", Kai, "楷体";
+        text-indent: 2em;
+        margin: 1em 0;
         color: #3498db;
-        margin-right: 8px;
         cursor: pointer;
         transition: all 0.2s ease;
-        display: inline-block;
+        display: block;
         min-width: 24px;
     }
     
+    .calibre1 {
+        color: #00C;
+    }
+    
     .reference-number:hover {
-        color: #e74c3c;
+        color: #00C;
         transform: scale(1.1);
     }
     
     .reference-content {
-        display: inline;
-        font-size: 0.9em;
     }
+
     """
     
     # 追加样式到外部样式表（避免覆盖已有样式）
@@ -223,20 +229,20 @@ def convert_footnotes_to_internal_links(epub_path):
                         section['class'] = "references-section"
                         
                         h2 = soup.new_tag('hr')
+                        h2['class'] = "calibre8"
                         section.append(h2)
                         
                         # 添加参考文献条目
                         for ref in references:
-                            item = soup.new_tag('div')
-                            item['class'] = "reference-item"
+                            item = soup.new_tag('p')
+                            item['class'] = "kindle-cn-kai1"
                             item['id'] = f"ref-{ref['id']}"
                             
                             # 创建带链接的编号（点击返回正文）
                             number_link = soup.new_tag('a')
-                            number_link['class'] = "reference-number"
+                            number_link['class'] = "calibre1"
                             # 使用不带后缀的文件名
-                            number_link['href'] = f"#ref-{ref['id']}-back-{file_base}"  # 关键修改
-                            number_link['title'] = "返回正文"
+                            number_link['href'] = f"#ref-{ref['id']}-back-{file_base}"
                             number_link.string = f"[{ref['id']}]"
                             
                             # 添加内容
