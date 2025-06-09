@@ -74,58 +74,48 @@ def convert_footnotes_to_internal_links(epub_path):
     css_path = os.path.join(styles_dir, 'stylesheets.css')  
     # 定义参考文献样式
     footnote_styles = """
-    /* 正文中的参考文献标记 */
-   .footnote-ref {
-      vertical-align: super;
-      font-size: smaller;
-      cursor: pointer;
-      transition: all 0.3s ease;
+.footnote-ref {	
+        font-size:0.7em;
+        vertical-align:super;
+        cursor: pointer;
+        transition: all 0.3s ease;
 }
-    
-    .footnote-ref:hover {
+.footnote-ref:hover {
         background: #e6f0ff;
         transform: scale(1.1);
-    }
-    
-    /* 参考文献部分样式 */
-    .references-section {
+}
+.references-section {
         margin-top: 40px;
         padding-top: 20px;
-    }
-
-    .calibre8 {
+}
+.calibre8 {
         color: gray;
         display: block;
-        height: 2px;
         margin: 0.5em auto;
         border: currentColor inset 1px;
-    }
-
-    .kindle-cn-kai1 {
+}
+.kindle-cn-kai1 {
         font-family: STKai, "MKai PRC", Kai, "楷体";
         text-indent: 2em;
         margin: 1em 0;
-        color: #3498db;
         cursor: pointer;
         transition: all 0.2s ease;
         display: block;
         min-width: 24px;
-    }
-    
-    .calibre1 {
+}  
+.calibre1 {
         color: #00C;
-    }
-    
-    .reference-number:hover {
+} 
+.reference-number:hover {
         color: #00C;
         transform: scale(1.1);
-    }
-    
-    .reference-content {
-    }
+} 
+.reference-content {
+}
 
     """
-    
+
+
     # 追加样式到外部样式表（避免覆盖已有样式）
     if os.path.exists(css_path):
         with open(css_path, 'a', encoding='utf-8') as css_file:
@@ -140,13 +130,64 @@ def convert_footnotes_to_internal_links(epub_path):
   
     # 处理每个HTML/XHTML文件
     for root, dirs, files in os.walk(temp_dir):
+	    for file in files:
+        	if file.lower().endswith(('.xhtml')):
+                    old_path = os.path.join(root, file)
+                    # 构建新文件名（保留原始路径）
+                    new_name = file[:-6] + '.html'
+                    new_path = os.path.join(root, new_name)
+                    os.rename(old_path, new_path)
+        	continue
+
+    for root, dirs, files in os.walk(temp_dir):
         for file in files:
-            if file.lower().endswith(('.html', '.xhtml')):
+            all_files_path = os.path.join(root, file)
+
+            def is_text_file(all_files_path):
+                """检查文件是否为文本文件"""
+                text_extensions = {
+                    '.opf', '.ncx',
+                }
+                return os.path.splitext(all_files_path)[1].lower() in text_extensions
+
+            # 跳过二进制文件和非文本文件
+            if not is_text_file(all_files_path):
+                continue
+
+            try:
+                # 读取文件内容
+                with open(all_files_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                # 替换.xhtml为.html (保留大小写)
+                new_content = re.sub(
+                    r'\.xhtml(\b|["\'])',
+                    r'.html\1',
+                    content,
+                    flags=re.IGNORECASE
+                )
+
+                # 如果内容有变化则写回文件
+                if new_content != content:
+                    with open(all_files_path, 'w', encoding='utf-8') as f:
+                        f.write(new_content)
+                    print(f"✏️ 内容更新: {all_files_path}")
+                    content_updated_count += 1
+
+            except Exception as e:
+                print(f"==========xxx============")
+
+                continue
+
+
+    for root, dirs, files in os.walk(temp_dir):
+        for file in files:
+            if file.lower().endswith(('.html')):
                 file_path = os.path.join(root, file)
                 print(f"\n处理文件: {file}")
                 
                 # 获取不带后缀的文件名
-                file_base = os.path.splitext(file)[0]
+                # file_base = os.path.splitext(file)[0]
                 
                 try:
                     # 读取文件内容
@@ -165,7 +206,7 @@ def convert_footnotes_to_internal_links(epub_path):
                 modified = False
                 
                 # 添加外部样式表链接（如果不存在）
-                css_link = soup.find('link', {'href': '../Styles/stylesheets.css'})
+                css_link = soup.find('link', {'href': '../OEBPS/stylesheets.css'})
                 if not css_link:
                     # 计算相对路径
                     relative_css_path = os.path.relpath(css_path, os.path.dirname(file_path))
@@ -203,15 +244,13 @@ def convert_footnotes_to_internal_links(epub_path):
                         'alt': alt_text,
                         'element': img
                     })
-                    
-                    # 创建上标角标
-                    sup = soup.new_tag('sup')
+
                     
                     # 创建返回锚点 (使用不带后缀的文件名)
                     back_anchor = soup.new_tag('a')
-                    back_anchor['href'] = f"#ref-{ref_id}"
+                    back_anchor['href'] = f"#note{ref_id}"
                     back_anchor['class'] = "footnote-ref"
-                    back_anchor['id'] = f"ref-{ref_id}-back-{file_base}"  # 关键修改：使用file_base
+                    back_anchor['id'] = f"ref{ref_id}"  # 关键修改：使用file_base
                     back_anchor.string = f"[{ref_id}]"  # 显示数字和方括号
                     
                     # 替换原始图片
@@ -236,19 +275,19 @@ def convert_footnotes_to_internal_links(epub_path):
                         for ref in references:
                             item = soup.new_tag('p')
                             item['class'] = "kindle-cn-kai1"
-                            item['id'] = f"ref-{ref['id']}"
+                            item['id'] = f"note{ref['id']}"
                             
                             # 创建带链接的编号（点击返回正文）
                             number_link = soup.new_tag('a')
                             number_link['class'] = "calibre1"
                             # 使用不带后缀的文件名
-                            number_link['href'] = f"#ref-{ref['id']}-back-{file_base}"
+                            number_link['href'] = f"#ref{ref['id']}"
                             number_link.string = f"[{ref['id']}]"
                             
                             # 添加内容
                             content_span = soup.new_tag('span')
                             content_span['class'] = "reference-content"
-                            content_span.string = ref['alt']
+                            content_span.string = " " + ref['alt']
                             
                             # 将编号链接和内容添加到条目
                             item.append(number_link)
