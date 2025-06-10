@@ -23,7 +23,7 @@ def convert_footnotes_to_internal_links(epub_path):
 
 
 
-
+    # 添加封面声明
     # 查找content.opf文件
     oebps_dir = os.path.join(temp_dir, 'OEBPS')
     os.makedirs(oebps_dir, exist_ok=True)
@@ -52,7 +52,7 @@ def convert_footnotes_to_internal_links(epub_path):
             return
         
         # 创建新的meta标签
-        cover_meta = soup.new_tag('meta', attrs={'name': 'cover', 'content': 'Cover1'})
+        cover_meta = soup.new_tag('meta', attrs={'name': 'cover', 'content': 'Cover'})
         
         # 添加到metadata的最下方
         metadata.append(cover_meta)
@@ -79,6 +79,7 @@ def convert_footnotes_to_internal_links(epub_path):
         vertical-align:super;
         cursor: pointer;
         transition: all 0.3s ease;
+        color: #6cb4ee;
 }
 .footnote-ref:hover {
         background: #e6f0ff;
@@ -89,13 +90,18 @@ def convert_footnotes_to_internal_links(epub_path):
         padding-top: 20px;
 }
 .calibre8 {
-        color: gray;
         display: block;
-        margin: 0.5em auto;
-        border: currentColor inset 1px;
+        unicode-bidi: isolate;
+        margin-block-start: 0.5em;
+        margin-block-end: 0.5em;
+        margin-inline-start: auto;
+        margin-inline-end: auto;
+        overflow: hidden;
+        border-style: inset;
+        border-width: 1px;
 }
 .kindle-cn-kai1 {
-        font-family: STKai, "MKai PRC", Kai, "楷体";
+        font-family: "Times New Roman", "汉仪楷体", "ETrump KaiTi", "AR PL Ukai CN", "方正仿宋", "FZFSJW--GB1-0", "DK-KAITI", STKai, "MKai PRC", Kai, "楷体", Serif;
         text-indent: 2em;
         margin: 1em 0;
         cursor: pointer;
@@ -104,10 +110,10 @@ def convert_footnotes_to_internal_links(epub_path):
         min-width: 24px;
 }  
 .calibre1 {
-        color: #00C;
+        color: #6cb4ee;
 } 
 .reference-number:hover {
-        color: #00C;
+        background: #e6f0ff;
         transform: scale(1.1);
 } 
 .reference-content {
@@ -264,12 +270,9 @@ def convert_footnotes_to_internal_links(epub_path):
                     # 在当前文件末尾添加参考文献部分
                     if references:
                         # 创建参考文献部分
-                        section = soup.new_tag('div')
-                        section['class'] = "references-section"
-                        
-                        h2 = soup.new_tag('hr')
-                        h2['class'] = "calibre8"
-                        section.append(h2)
+                        section = BeautifulSoup('<hr class="calibre8" />')
+
+                        section.append('\n')
                         
                         # 添加参考文献条目
                         for ref in references:
@@ -294,6 +297,7 @@ def convert_footnotes_to_internal_links(epub_path):
                             item.append(content_span)
                             
                             section.append(item)
+                            section.append('\n')
                             print(f"    + 添加参考文献 [{ref['id']}]")
                         
                         # 添加到文档末尾
